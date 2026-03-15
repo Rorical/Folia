@@ -16629,7 +16629,15 @@ index 66df6c69a95c5ca6b07294fdb3b13eee6651d22d..7d8c528a76e6a95d27368bc459d654c6
              Entity owner = this.getOwner();
              if (owner != null && isAllowedToTeleportOwner(owner, serverLevel)) {
                  Vec3 vec3 = this.oldPosition();
-@@ -196,7 +281,15 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
+@@ -173,6 +258,7 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
+             Entity entity = this.owner != null ? findOwnerIncludingDeadPlayer(serverLevel, this.owner.getUUID()) : null;
+             if (entity instanceof ServerPlayer serverPlayer
+                 && !entity.isAlive()
++                && entity.getRemovalReason() != Entity.RemovalReason.CHANGED_DIMENSION // Folia - don't discard pearls during async dimension change
+                 && !serverPlayer.wonGame
+                 && serverPlayer.level().getGameRules().get(GameRules.ENDER_PEARLS_VANISH_ON_DEATH)) {
+                 this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
+@@ -196,7 +282,15 @@ public class ThrownEnderpearl extends ThrowableItemProjectile {
          }
      }
  
