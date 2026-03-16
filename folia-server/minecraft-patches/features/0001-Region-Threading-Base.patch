@@ -16952,6 +16952,30 @@ index f51dbc45204c2727122aeb6b5002216e3200680d..4ecfd7c52b4df8af21502633242fb0e7
          boolean flag1 = player instanceof ServerPlayer serverPlayer && serverPlayer.hasDisconnected();
          if (flag || flag1) {
              player.drop(stack, false);
+diff --git a/net/minecraft/world/item/FishingRodItem.java b/net/minecraft/world/item/FishingRodItem.java
+--- a/net/minecraft/world/item/FishingRodItem.java
++++ b/net/minecraft/world/item/FishingRodItem.java
+@@ -23,6 +23,19 @@ public class FishingRodItem extends Item {
+         ItemStack itemInHand = player.getItemInHand(hand);
+         if (player.fishing != null) {
+             if (!level.isClientSide()) {
++                // Folia start - region threading - handle cross-thread fishing hook retrieve
++                if (!ca.spottedleaf.moonrise.common.util.TickThread.isTickThreadFor(player.fishing)) {
++                    final FishingHook hook = player.fishing;
++                    player.fishing = null;
++                    hook.getBukkitEntity().taskScheduler.schedule(
++                        (net.minecraft.world.entity.Entity entity) -> {
++                            entity.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN);
++                        },
++                        null, 1L
++                    );
++                } else {
++                // Folia end - region threading
+                 int i = player.fishing.retrieve(itemInHand, hand); // Paper - Add hand parameter to PlayerFishEvent
+                 itemInHand.hurtAndBreak(i, player, hand.asEquipmentSlot());
++                } // Folia - region threading
+             }
+
 diff --git a/net/minecraft/world/item/ItemStack.java b/net/minecraft/world/item/ItemStack.java
 index ed06cffe8a5eba2ca4a34ade81f8185e21d7b651..8660c37560442153787e854a0e95bdd81c1bc152 100644
 --- a/net/minecraft/world/item/ItemStack.java
