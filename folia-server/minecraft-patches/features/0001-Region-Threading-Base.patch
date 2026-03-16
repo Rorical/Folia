@@ -16469,6 +16469,23 @@ index 51d3560c5d8cba89469c07fe6b13f0016adc6db7..1880f8d4576184b6b45eeff3e690008f
          boolean flag = !this.isNoPhysics();
          Vec3 deltaMovement = this.getDeltaMovement();
          BlockPos blockPos = this.blockPosition();
+diff --git a/net/minecraft/world/entity/projectile/arrow/ThrownTrident.java b/net/minecraft/world/entity/projectile/arrow/ThrownTrident.java
+--- a/net/minecraft/world/entity/projectile/arrow/ThrownTrident.java
++++ b/net/minecraft/world/entity/projectile/arrow/ThrownTrident.java
+@@ -103,6 +103,12 @@ public class ThrownTrident extends AbstractArrow {
+ 
+     private boolean isAcceptibleReturnOwner() {
+         Entity owner = this.getOwner();
++        // Folia start - region threading - don't drop loyalty trident when owner is changing dimensions
++        if (owner == null && this.owner != null && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel
++            && serverLevel.getServer().getPlayerList().getPlayer(this.owner.getUUID()) != null) {
++            return true;
++        }
++        // Folia end - region threading
+         return owner != null && owner.isAlive() && (!(owner instanceof ServerPlayer) || !owner.isSpectator());
+     }
+ 
+     public boolean isFoil() {
 diff --git a/net/minecraft/world/entity/projectile/hurtingprojectile/AbstractHurtingProjectile.java b/net/minecraft/world/entity/projectile/hurtingprojectile/AbstractHurtingProjectile.java
 index 6edff432866ae72db657b47bf9726be9a4ef1562..e7c522f816819a708bd3f56c8c55347543b7acb2 100644
 --- a/net/minecraft/world/entity/projectile/hurtingprojectile/AbstractHurtingProjectile.java
