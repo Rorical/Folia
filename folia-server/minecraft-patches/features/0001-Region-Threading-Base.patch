@@ -16347,7 +16347,7 @@ index 4a7abf4ae0c1f4c22c1c77d5ce9e67418b274365..71f6acc07d222fe512bf8d9fbaad35cb
          if (playerOwner == null) {
 -            this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
 +            // Folia start - region threading - don't discard when owner is on another thread (e.g., after dimension change)
-+            if (this.getOwnerRaw() == null) {
++            if (this.owner == null || !(this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) || serverLevel.getServer().getPlayerList().getPlayer(this.owner.getUUID()) == null) {
 +                this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
 +            }
 +            // Folia end - region threading
