@@ -16314,7 +16314,7 @@ index e4240fa38fb8513c7e320a4b30e6dcbb7e015310..b39325b3c11b689a2fe7a57f679ec6a3
 +    @Override
 +    protected void preRemove(RemovalReason reason) {
 +        super.preRemove(reason);
-+        this.fishing = null;
++        if (reason != RemovalReason.CHANGED_DIMENSION) this.fishing = null; // Folia - don't clear fishing on dimension change
 +    }
 +    // Folia end - region threading
 +
@@ -16341,7 +16341,20 @@ diff --git a/net/minecraft/world/entity/projectile/FishingHook.java b/net/minecr
 index 4a7abf4ae0c1f4c22c1c77d5ce9e67418b274365..71f6acc07d222fe512bf8d9fbaad35cb36bcf2d6 100644
 --- a/net/minecraft/world/entity/projectile/FishingHook.java
 +++ b/net/minecraft/world/entity/projectile/FishingHook.java
-@@ -270,6 +270,11 @@ public class FishingHook extends Projectile {
+@@ -168,7 +168,11 @@ public class FishingHook extends Projectile {
+         super.tick();
+         Player playerOwner = this.getPlayerOwner();
+         if (playerOwner == null) {
+-            this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
++            // Folia start - region threading - don't discard when owner is on another thread (e.g., after dimension change)
++            if (this.getOwnerRaw() == null) {
++                this.discard(org.bukkit.event.entity.EntityRemoveEvent.Cause.DESPAWN); // CraftBukkit - add Bukkit remove cause
++            }
++            // Folia end - region threading
+         } else if (this.level().isClientSide() || !this.shouldStopFishing(playerOwner)) {
+             if (this.onGround()) {
+                 this.life++;
+@@ -270,6 +273,11 @@ public class FishingHook extends Projectile {
      }
  
      private boolean shouldStopFishing(Player player) {
@@ -16353,7 +16366,7 @@ index 4a7abf4ae0c1f4c22c1c77d5ce9e67418b274365..71f6acc07d222fe512bf8d9fbaad35cb
          if (player.canInteractWithLevel()) {
              ItemStack mainHandItem = player.getMainHandItem();
              ItemStack offhandItem = player.getOffhandItem();
-@@ -614,10 +619,18 @@ public class FishingHook extends Projectile {
+@@ -614,10 +622,18 @@ public class FishingHook extends Projectile {
  
      @Override
      public void remove(Entity.RemovalReason reason, org.bukkit.event.entity.EntityRemoveEvent.@Nullable Cause cause) { // CraftBukkit - add Bukkit remove cause
